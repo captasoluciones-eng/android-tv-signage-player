@@ -60,6 +60,25 @@ object ContentTypes {
 val PlaylistItem.normalizedType: String
     get() = type.trim().lowercase()
 
+/** Body for POST {baseUrl}/register. */
+@Serializable
+data class RegisterRequest(
+    val deviceId: String,
+    val screenWidth: Int? = null,
+    val screenHeight: Int? = null
+)
+
+/** Response from POST {baseUrl}/register -- the server is the source of truth for
+ * `pairingCode` and `estado`; the locally-generated pairing code (DeviceDataStore)
+ * is only a placeholder shown before the first successful registration. */
+@Serializable
+data class RegisterResponse(
+    val deviceId: String = "",
+    val estado: String = "pendiente",
+    val pairingCode: String? = null,
+    val created: Boolean = false
+)
+
 /** Remote command values, paired with commandId so each command runs exactly once. */
 object RemoteCommands {
     const val RELOAD = "reload"

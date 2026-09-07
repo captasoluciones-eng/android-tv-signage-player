@@ -15,6 +15,7 @@ import com.captasoluciones.signage.data.model.RemoteCommands
 import com.captasoluciones.signage.data.model.normalizedType
 import com.captasoluciones.signage.data.repository.PlaylistFetchResult
 import com.captasoluciones.signage.data.repository.PlaylistRepository
+import com.captasoluciones.signage.data.repository.RegisterResult
 import com.captasoluciones.signage.service.HeartbeatManager
 import com.captasoluciones.signage.util.NetworkUtils
 import kotlinx.coroutines.CompletableDeferred
@@ -158,6 +159,9 @@ class PlayerViewModel(
                     handleFetchResult(PlaylistFetchResult.Failed("Sin conexión de red", repository.getLastGoodPlaylist()))
                 } else {
                     val deviceId = settings.deviceId.ifBlank { _uiState.value.deviceId }
+                    if (!_uiState.value.linked) {
+                        registerWithServer(deviceId)
+                    }
                     val result = repository.fetchPlaylist(baseUrl, deviceId)
                     handleFetchResult(result)
                 }
@@ -169,6 +173,27 @@ class PlayerViewModel(
                     waited += 1_000
                 }
                 forceImmediatePoll = false
+            }
+        }
+    }
+
+    /**
+     * POST {baseUrl}/register so the server actually knows this device exists --
+     * required before pairing can ever succeed, since the panel's "Vincular
+     * dispositivo" flow looks up a device by pairingCode server-side. Idempotent,
+     * so calling it once per poll cycle while unpaired is safe; stops mattering once
+     * `linked` is true (the caller only invokes this while unlinked).
+     */
+    private suspend fun registerWithServer(deviceId: String) {
+        val dm = appContext.resources.displayMetrics
+        when (val result = repository.registerDevice(settings.baseUrl, deviceId, dm.widthPixels, dm.heightPixels)) {
+            is RegisterResult.Success -> {
+                val linked = result.response.estado == "activo"
+                dataStore.applyServerRegistration(result.response.pairingCode, linked)
+            }
+            is RegisterResult.Failed -> {
+                // Logged inside PlaylistRepository already; nothing else to do here --
+                // the next poll cycle will simply retry.
             }
         }
     }
@@ -190,12 +215,14 @@ class PlayerViewModel(
                 }
                 pendingPlaylist = result.playlist
                 applyServerDrivenState(result.playlist)
-                dataStore.setLinked(true)
+                // NOTE: "linked" is NOT set here -- an unpaired device also gets a
+                // successful (200, items: []) /playlist response per the contract, so
+                // that alone can't mean "paired". It's set by registerWithServer()
+                // instead, driven by the server's authoritative `estado` field.
                 dataStore.setSyncStatus(System.currentTimeMillis(), "", result.playlist.items.size)
                 _uiState.update {
                     it.copy(
                         lastError = "",
-                        linked = true,
                         lastSyncTime = System.currentTimeMillis(),
                         itemCount = result.playlist.items.size
                     )

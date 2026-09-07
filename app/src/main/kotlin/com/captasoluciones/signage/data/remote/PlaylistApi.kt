@@ -26,4 +26,10 @@ interface PlaylistApi {
     @Headers("Content-Type: application/json; charset=utf-8")
     @POST
     suspend fun postHeartbeat(@Url url: String, @Body body: RequestBody): Response<ResponseBody>
+
+    /** Generic JSON POST reused for /register (heartbeat has its own method above only
+     * because it predates this one; both hit the same underlying Retrofit mechanism). */
+    @Headers("Content-Type: application/json; charset=utf-8")
+    @POST
+    suspend fun postJson(@Url url: String, @Body body: RequestBody): Response<ResponseBody>
 }

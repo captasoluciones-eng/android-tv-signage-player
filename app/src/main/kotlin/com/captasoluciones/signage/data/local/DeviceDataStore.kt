@@ -103,6 +103,18 @@ class DeviceDataStore(private val context: Context) {
         context.dataStore.edit { it[Keys.LINKED] = linked }
     }
 
+    /** Applies the server's authoritative registration state (see PlaylistRepository.
+     * registerDevice). `serverPairingCode` overwrites the locally-generated placeholder
+     * once the server has actually seen this device; `linked` reflects estado == "activo". */
+    suspend fun applyServerRegistration(serverPairingCode: String?, linked: Boolean) {
+        context.dataStore.edit {
+            if (!serverPairingCode.isNullOrBlank()) {
+                it[Keys.PAIRING_CODE] = serverPairingCode
+            }
+            it[Keys.LINKED] = linked
+        }
+    }
+
     suspend fun setSyncStatus(lastSyncTime: Long, lastError: String, itemCount: Int) {
         context.dataStore.edit {
             it[Keys.LAST_SYNC_TIME] = lastSyncTime
