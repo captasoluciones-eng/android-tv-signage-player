@@ -1,0 +1,17 @@
+<resources>
+    <!-- Base application theme. Uses a plain platform theme (no AppCompat/Material XML
+         dependency needed) since all UI is rendered with Jetpack Compose. -->
+    <style name="Theme.SignagePlayer" parent="android:Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/signage_background</item>
+        <item name="android:statusBarColor">@color/signage_background</item>
+        <item name="android:navigationBarColor">@color/signage_background</item>
+    </style>
+
+    <!-- Fullscreen kiosk variant applied to the main activity. -->
+    <style name="Theme.SignagePlayer.Fullscreen" parent="Theme.SignagePlayer">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Signage Player</string>
+    <string name="watchdog_channel_name">Supervisor de reproducción</string>
+    <string name="watchdog_channel_description">Mantiene la app de señalización digital en ejecución y la reinicia si es necesario</string>
+    <string name="watchdog_notification_title">Signage Player activo</string>
+    <string name="watchdog_notification_text">Supervisando la reproducción en este dispositivo</string>
+</resources>
