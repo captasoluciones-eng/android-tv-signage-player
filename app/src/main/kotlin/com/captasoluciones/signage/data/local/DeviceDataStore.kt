@@ -19,6 +19,7 @@ data class DeviceSettings(
     val deviceId: String = "",
     val pairingCode: String = "",
     val baseUrl: String = "",
+    val deviceKey: String = "",
     val deviceName: String = "",
     val pollMinutes: Int = 5,
     val muteVideo: Boolean = true,
@@ -40,6 +41,7 @@ class DeviceDataStore(private val context: Context) {
         val DEVICE_ID = stringPreferencesKey("device_id")
         val PAIRING_CODE = stringPreferencesKey("pairing_code")
         val BASE_URL = stringPreferencesKey("base_url")
+        val DEVICE_KEY = stringPreferencesKey("device_key")
         val DEVICE_NAME = stringPreferencesKey("device_name")
         val POLL_MINUTES = intPreferencesKey("poll_minutes")
         val MUTE_VIDEO = booleanPreferencesKey("mute_video")
@@ -55,6 +57,7 @@ class DeviceDataStore(private val context: Context) {
             deviceId = prefs[Keys.DEVICE_ID] ?: "",
             pairingCode = prefs[Keys.PAIRING_CODE] ?: "",
             baseUrl = prefs[Keys.BASE_URL] ?: "",
+            deviceKey = prefs[Keys.DEVICE_KEY] ?: "",
             deviceName = prefs[Keys.DEVICE_NAME] ?: "",
             pollMinutes = prefs[Keys.POLL_MINUTES] ?: 5,
             muteVideo = prefs[Keys.MUTE_VIDEO] ?: true,
@@ -86,9 +89,16 @@ class DeviceDataStore(private val context: Context) {
         return id to code
     }
 
-    suspend fun updateBaseSettings(baseUrl: String, deviceName: String, pollMinutes: Int, muteVideo: Boolean) {
+    suspend fun updateBaseSettings(
+        baseUrl: String,
+        deviceKey: String,
+        deviceName: String,
+        pollMinutes: Int,
+        muteVideo: Boolean
+    ) {
         context.dataStore.edit {
             it[Keys.BASE_URL] = baseUrl
+            it[Keys.DEVICE_KEY] = deviceKey
             it[Keys.DEVICE_NAME] = deviceName
             it[Keys.POLL_MINUTES] = pollMinutes.coerceIn(1, 1440)
             it[Keys.MUTE_VIDEO] = muteVideo

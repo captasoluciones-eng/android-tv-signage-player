@@ -37,10 +37,10 @@ class PlaylistRepository(
 
     fun getLastGoodPlaylist(): PlaylistResponse? = lastGoodPlaylist
 
-    suspend fun fetchPlaylist(baseUrl: String, deviceId: String): PlaylistFetchResult {
+    suspend fun fetchPlaylist(baseUrl: String, deviceId: String, deviceKey: String?): PlaylistFetchResult {
         val url = buildPlaylistUrl(baseUrl, deviceId)
         return try {
-            val response = api.getPlaylist(url)
+            val response = api.getPlaylist(url, deviceKey)
             when {
                 response.code() == 304 -> {
                     eventLog.log("Playlist sin cambios (304 Not Modified)")

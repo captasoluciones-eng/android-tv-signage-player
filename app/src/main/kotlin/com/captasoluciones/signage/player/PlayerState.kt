@@ -40,6 +40,7 @@ data class PlayerUiState(
     val linked: Boolean = false,
     val deviceName: String = "",
     val baseUrl: String = "",
+    val deviceKey: String = "",
     val pollMinutes: Int = 5,
     val lastSyncTime: Long = 0L,
     val lastError: String = "",

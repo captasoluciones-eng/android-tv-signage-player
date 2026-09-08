@@ -47,11 +47,12 @@ import com.captasoluciones.signage.player.PlayerUiState
 fun SetupScreen(
     state: PlayerUiState,
     logEntries: List<LogEntry>,
-    onSave: (baseUrl: String, deviceName: String, pollMinutes: Int, muteVideo: Boolean) -> Unit,
+    onSave: (baseUrl: String, deviceKey: String, deviceName: String, pollMinutes: Int, muteVideo: Boolean) -> Unit,
     onClose: () -> Unit
 ) {
     var tab by remember { mutableStateOf(0) }
     var baseUrl by remember(state.baseUrl) { mutableStateOf(state.baseUrl) }
+    var deviceKey by remember(state.deviceKey) { mutableStateOf(state.deviceKey) }
     var deviceName by remember(state.deviceName) { mutableStateOf(state.deviceName) }
     var pollMinutesText by remember(state.pollMinutes) { mutableStateOf(state.pollMinutes.toString()) }
     var muteVideo by remember(state.muteVideo) { mutableStateOf(state.muteVideo) }
@@ -98,6 +99,12 @@ fun SetupScreen(
                     )
                     Spacer(Modifier.height(14.dp))
                     LabeledField(
+                        label = "Llave del dispositivo (deviceKey, solo tras vincular en el panel)",
+                        value = deviceKey,
+                        onValueChange = { deviceKey = it }
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    LabeledField(
                         label = "Nombre del dispositivo",
                         value = deviceName,
                         onValueChange = { deviceName = it }
@@ -117,7 +124,7 @@ fun SetupScreen(
                     Row {
                         Button(onClick = {
                             val minutes = pollMinutesText.toIntOrNull()?.coerceIn(1, 1440) ?: 5
-                            onSave(baseUrl.trim(), deviceName.trim(), minutes, muteVideo)
+                            onSave(baseUrl.trim(), deviceKey.trim(), deviceName.trim(), minutes, muteVideo)
                         }) {
                             Text("Guardar")
                         }

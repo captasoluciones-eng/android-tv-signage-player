@@ -77,6 +77,7 @@ class PlayerViewModel(
                 settings = DeviceSettingsSnapshot(
                     deviceId = s.deviceId,
                     baseUrl = s.baseUrl,
+                    deviceKey = s.deviceKey,
                     deviceName = s.deviceName,
                     pollMinutes = s.pollMinutes,
                     muteVideo = s.muteVideo,
@@ -88,6 +89,7 @@ class PlayerViewModel(
                         pairingCode = if (s.pairingCode.isNotBlank()) s.pairingCode else it.pairingCode,
                         deviceName = s.deviceName,
                         baseUrl = s.baseUrl,
+                        deviceKey = s.deviceKey,
                         baseUrlConfigured = s.baseUrl.isNotBlank(),
                         pollMinutes = s.pollMinutes,
                         muteVideo = s.muteVideo,
@@ -116,9 +118,9 @@ class PlayerViewModel(
         _uiState.update { it.copy(manualSetupOpen = false) }
     }
 
-    fun saveSetup(baseUrl: String, deviceName: String, pollMinutes: Int, muteVideo: Boolean) {
+    fun saveSetup(baseUrl: String, deviceKey: String, deviceName: String, pollMinutes: Int, muteVideo: Boolean) {
         viewModelScope.launch {
-            dataStore.updateBaseSettings(baseUrl.trim(), deviceName.trim(), pollMinutes, muteVideo)
+            dataStore.updateBaseSettings(baseUrl.trim(), deviceKey.trim(), deviceName.trim(), pollMinutes, muteVideo)
             eventLog.log("Configuración guardada (baseUrl=${baseUrl.trim()}, pollMinutes=$pollMinutes)")
             forceImmediatePoll = true
             _uiState.update { it.copy(manualSetupOpen = false) }
@@ -162,7 +164,7 @@ class PlayerViewModel(
                     if (!_uiState.value.linked) {
                         registerWithServer(deviceId)
                     }
-                    val result = repository.fetchPlaylist(baseUrl, deviceId)
+                    val result = repository.fetchPlaylist(baseUrl, deviceId, settings.deviceKey.ifBlank { null })
                     handleFetchResult(result)
                 }
 
@@ -415,6 +417,7 @@ class PlayerViewModel(
 private data class DeviceSettingsSnapshot(
     val deviceId: String = "",
     val baseUrl: String = "",
+    val deviceKey: String = "",
     val deviceName: String = "",
     val pollMinutes: Int = 5,
     val muteVideo: Boolean = true,
