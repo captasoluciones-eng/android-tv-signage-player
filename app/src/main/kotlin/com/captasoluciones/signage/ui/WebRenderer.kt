@@ -45,6 +45,12 @@ fun WebRenderer(
                 isHorizontalScrollBarEnabled = false
                 isVerticalScrollBarEnabled = false
                 setBackgroundColor(android.graphics.Color.BLACK)
+                // Some (mostly cheap/older) Android TV boxes have a GPU driver bug where
+                // a hardware-accelerated WebView surface renders solid black -- the page
+                // loads fine (no error callback fires) but nothing is ever drawn. Software
+                // rendering is slower but reliably avoids that class of bug; fine for a
+                // signage dashboard, not a big performance concern here.
+                setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
 
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
