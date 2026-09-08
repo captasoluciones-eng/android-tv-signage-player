@@ -20,6 +20,17 @@ import com.captasoluciones.signage.data.model.PlaylistItem
  *
  * `scale` is interpreted as an integer text-zoom percentage (WebSettings.textZoom),
  * e.g. "150" = 150%. Any non-numeric value is ignored and the platform default is used.
+ *
+ * Known limitation (not fixable from this app): a page whose own JS periodically
+ * swaps an `<img src=...>` to rotate content (rather than doing a full navigation)
+ * can render solid black in Android's WebView/Chromium even though the DOM reports
+ * a fully successful load (`img.complete`, correct natural size). Confirmed via
+ * Chrome DevTools Protocol against the live WebView: the compositor's own screenshot
+ * stays black regardless of `WebView.reload()` or `WebView.invalidate()` calls from
+ * here, so the bug is upstream in the renderer, not in anything this app controls.
+ * A statically-declared `<img src="...">` (no JS swap) and a full page reload both
+ * render correctly, so the fix belongs on the content side: e.g. rotate via
+ * `<meta http-equiv="refresh" content="20">` instead of a JS `img.src` swap.
  */
 @Composable
 fun WebRenderer(
@@ -45,17 +56,18 @@ fun WebRenderer(
                 isHorizontalScrollBarEnabled = false
                 isVerticalScrollBarEnabled = false
                 setBackgroundColor(android.graphics.Color.BLACK)
-                // Some (mostly cheap/older) Android TV boxes have a GPU driver bug where
-                // a hardware-accelerated WebView surface renders solid black -- the page
-                // loads fine (no error callback fires) but nothing is ever drawn. Software
-                // rendering is slower but reliably avoids that class of bug; fine for a
-                // signage dashboard, not a big performance concern here.
-                setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null)
 
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
+                // Some sites (dashboards, embedded analytics tools) special-case or
+                // outright refuse to render for the standard WebView user agent
+                // (identifiable via its "; wv)" / "Version/4.0" markers), even though
+                // JS/CSS support is otherwise equivalent to Chrome. Presenting as a
+                // normal desktop Chrome UA avoids that class of failure.
+                settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 
                 item.scale.trim().toIntOrNull()?.let { zoom ->
                     settings.textZoom = zoom.coerceIn(10, 500)
