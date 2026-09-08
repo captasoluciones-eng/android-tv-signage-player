@@ -21,16 +21,17 @@ import com.captasoluciones.signage.data.model.PlaylistItem
  * `scale` is interpreted as an integer text-zoom percentage (WebSettings.textZoom),
  * e.g. "150" = 150%. Any non-numeric value is ignored and the platform default is used.
  *
- * Known limitation (not fixable from this app): a page whose own JS periodically
- * swaps an `<img src=...>` to rotate content (rather than doing a full navigation)
- * can render solid black in Android's WebView/Chromium even though the DOM reports
- * a fully successful load (`img.complete`, correct natural size). Confirmed via
- * Chrome DevTools Protocol against the live WebView: the compositor's own screenshot
- * stays black regardless of `WebView.reload()` or `WebView.invalidate()` calls from
- * here, so the bug is upstream in the renderer, not in anything this app controls.
- * A statically-declared `<img src="...">` (no JS swap) and a full page reload both
- * render correctly, so the fix belongs on the content side: e.g. rotate via
- * `<meta http-equiv="refresh" content="20">` instead of a JS `img.src` swap.
+ * Content-side gotcha (not a bug in this app, but worth knowing when debugging a
+ * black "link" item): this WebView/Chromium build fails to ever paint an `<img>`
+ * whose width/height is set via a relative unit (`%`, `vw`, `vh`) -- the page goes
+ * solid black even though the DOM reports a fully successful load (`img.complete`,
+ * correct natural size). A/B'd via Chrome DevTools Protocol against the live
+ * WebView: the exact same image, same site, renders correctly the moment its
+ * `<img>` is sized with fixed pixel dimensions (e.g. computed once from
+ * `window.innerWidth`/`innerHeight`) instead of `%`/`vw`/`vh`; JavaScript itself
+ * (including a `setInterval` swapping `img.src` to rotate images) was never the
+ * problem. Fixed on the `kiosko.bts-captasoluciones.site` content by switching
+ * its CSS to pixel-based sizing.
  */
 @Composable
 fun WebRenderer(
