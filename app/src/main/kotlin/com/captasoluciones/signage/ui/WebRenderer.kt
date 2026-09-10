@@ -62,13 +62,17 @@ fun WebRenderer(
                 settings.domStorageEnabled = true
                 settings.loadWithOverviewMode = true
                 settings.useWideViewPort = true
-                // Some sites (dashboards, embedded analytics tools) special-case or
-                // outright refuse to render for the standard WebView user agent
-                // (identifiable via its "; wv)" / "Version/4.0" markers), even though
-                // JS/CSS support is otherwise equivalent to Chrome. Presenting as a
-                // normal desktop Chrome UA avoids that class of failure.
-                settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+                // Do NOT spoof the user agent (a prior version claimed to be a
+                // recent desktop Chrome). Confirmed on real hardware running
+                // Android 8.1: some servers (Google Apps Script's own web app
+                // runtime among them) pick which JS to serve based on the UA,
+                // and telling them "modern desktop Chrome" while the actual
+                // engine is years older gets back JS the real engine can't run
+                // -- content silently never loads (stuck on its own loading
+                // state, or blank). Confirmed the other way too: simulating an
+                // old-Android UA in a modern desktop Chrome reproduces the same
+                // stuck-loading symptom. Leaving the WebView's own accurate UA
+                // in place lets each server serve JS the real engine can run.
 
                 item.scale.trim().toIntOrNull()?.let { zoom ->
                     settings.textZoom = zoom.coerceIn(10, 500)
