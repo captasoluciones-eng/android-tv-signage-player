@@ -261,6 +261,21 @@ class PlayerViewModel(
         if (commandId.isBlank() || commandId == settings.lastCommandId) return
 
         eventLog.log("Ejecutando comando remoto '$command' (commandId=$commandId)")
+
+        // Persist BEFORE dispatching the command, not after: RESTART kills the
+        // process (Process.killProcess in MainActivity.performRestart) almost
+        // immediately once PlayerEvent.RestartApp is collected, on a different
+        // coroutine than this one. That raced with this function's own
+        // still-pending write below, so the process could die before
+        // "commandId" was ever durably saved -- meaning the next boot reads
+        // the exact same pending command from the server and restarts again,
+        // forever (reproduced live: the app restarting every ~1.5-2s, matching
+        // performRestart's own alarm delay). Persisting first guarantees the
+        // command is already marked handled no matter how fast a collector
+        // reacts to it.
+        dataStore.setLastCommandId(commandId)
+        settings = settings.copy(lastCommandId = commandId)
+
         when (command) {
             RemoteCommands.RELOAD -> {
                 forceImmediatePoll = true
@@ -282,9 +297,6 @@ class PlayerViewModel(
         if (command != RemoteCommands.BLACKOUT) {
             _uiState.update { it.copy(blackout = false) }
         }
-
-        dataStore.setLastCommandId(commandId)
-        settings = settings.copy(lastCommandId = commandId)
     }
 
     // ---------------------------------------------------------------------

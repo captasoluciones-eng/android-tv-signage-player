@@ -60,8 +60,20 @@ fun WebRenderer(
 
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                settings.loadWithOverviewMode = true
-                settings.useWideViewPort = true
+                // Deliberately NOT setting loadWithOverviewMode/useWideViewPort.
+                // Those exist to make a page that has NO (or a non-responsive)
+                // viewport meta tag fit a small screen by zooming/scaling the
+                // whole layout. Every link we show (this kiosk, kiosko.bts-...)
+                // already declares its own `<meta name="viewport"
+                // content="width=device-width, initial-scale=1.0">`, so we don't
+                // need that legacy-page assistance -- and on the real hardware
+                // (HiKVision DS-D6055UN-B, Android 8.1) even Google's own Apps
+                // Script wrapper chrome (the "created by a user of Google Apps
+                // Script" banner, not anything in our own HTML) was rendering
+                // visibly clipped, which points at a WebView-level zoom/sizing
+                // setting doing something wrong with nested-iframe content on
+                // this old engine, not at our page's own CSS.
+                //
                 // Do NOT spoof the user agent (a prior version claimed to be a
                 // recent desktop Chrome). Confirmed on real hardware running
                 // Android 8.1: some servers (Google Apps Script's own web app
