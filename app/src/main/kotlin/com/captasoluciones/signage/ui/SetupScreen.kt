@@ -92,14 +92,14 @@ fun SetupScreen(
             if (tab == 0) {
                 Column(modifier = Modifier.widthIn(max = 720.dp)) {
                     LabeledField(
-                        label = "URL base del servidor (ej. https://ejemplo.com/playlist)",
+                        label = "URL base del servidor (ya viene configurada; solo tocar para casos especiales)",
                         value = baseUrl,
                         onValueChange = { baseUrl = it },
                         focusRequester = firstFieldFocus
                     )
                     Spacer(Modifier.height(14.dp))
                     LabeledField(
-                        label = "Llave del dispositivo (deviceKey, solo tras vincular en el panel)",
+                        label = "Llave del dispositivo (se llena sola al vincular el código en el panel)",
                         value = deviceKey,
                         onValueChange = { deviceKey = it }
                     )

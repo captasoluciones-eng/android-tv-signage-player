@@ -14,6 +14,14 @@ import java.util.UUID
 
 private val Context.dataStore by preferencesDataStore(name = "signage_settings")
 
+/**
+ * Backend de producción horneado en la app: la mayoría de las pantallas nunca
+ * necesitan tocar la URL a mano. Se puede seguir sobreescribiendo desde la
+ * pantalla de Configuración (mantener OK 5s / botón MENU) para casos raros
+ * (otro ambiente, pruebas), pero ya no es un paso obligatorio de vinculación.
+ */
+const val DEFAULT_BASE_URL = "https://signage-backend-ckuqqiwiqa-uc.a.run.app"
+
 /** Immutable snapshot of everything persisted about this device / its configuration. */
 data class DeviceSettings(
     val deviceId: String = "",
@@ -56,7 +64,7 @@ class DeviceDataStore(private val context: Context) {
         DeviceSettings(
             deviceId = prefs[Keys.DEVICE_ID] ?: "",
             pairingCode = prefs[Keys.PAIRING_CODE] ?: "",
-            baseUrl = prefs[Keys.BASE_URL] ?: "",
+            baseUrl = prefs[Keys.BASE_URL] ?: DEFAULT_BASE_URL,
             deviceKey = prefs[Keys.DEVICE_KEY] ?: "",
             deviceName = prefs[Keys.DEVICE_NAME] ?: "",
             pollMinutes = prefs[Keys.POLL_MINUTES] ?: 5,
@@ -115,11 +123,17 @@ class DeviceDataStore(private val context: Context) {
 
     /** Applies the server's authoritative registration state (see PlaylistRepository.
      * registerDevice). `serverPairingCode` overwrites the locally-generated placeholder
-     * once the server has actually seen this device; `linked` reflects estado == "activo". */
-    suspend fun applyServerRegistration(serverPairingCode: String?, linked: Boolean) {
+     * once the server has actually seen this device; `linked` reflects estado == "activo".
+     * `serverDeviceKey` -- once an admin links the pairingCode in the panel, the server
+     * starts returning the real key here; adopting it automatically is what lets pairing
+     * be a single on-screen code instead of also copying a deviceKey by hand. */
+    suspend fun applyServerRegistration(serverPairingCode: String?, linked: Boolean, serverDeviceKey: String? = null) {
         context.dataStore.edit {
             if (!serverPairingCode.isNullOrBlank()) {
                 it[Keys.PAIRING_CODE] = serverPairingCode
+            }
+            if (!serverDeviceKey.isNullOrBlank()) {
+                it[Keys.DEVICE_KEY] = serverDeviceKey
             }
             it[Keys.LINKED] = linked
         }

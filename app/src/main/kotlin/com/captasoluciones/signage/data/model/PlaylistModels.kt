@@ -70,13 +70,16 @@ data class RegisterRequest(
 
 /** Response from POST {baseUrl}/register -- the server is the source of truth for
  * `pairingCode` and `estado`; the locally-generated pairing code (DeviceDataStore)
- * is only a placeholder shown before the first successful registration. */
+ * is only a placeholder shown before the first successful registration.
+ * `deviceKey` is null until an admin links this device's pairingCode in the panel;
+ * once populated, the app adopts it automatically -- no manual copy/paste needed. */
 @Serializable
 data class RegisterResponse(
     val deviceId: String = "",
     val estado: String = "pendiente",
     val pairingCode: String? = null,
-    val created: Boolean = false
+    val created: Boolean = false,
+    val deviceKey: String? = null
 )
 
 /** Remote command values, paired with commandId so each command runs exactly once. */

@@ -191,7 +191,7 @@ class PlayerViewModel(
         when (val result = repository.registerDevice(settings.baseUrl, deviceId, dm.widthPixels, dm.heightPixels)) {
             is RegisterResult.Success -> {
                 val linked = result.response.estado == "activo"
-                dataStore.applyServerRegistration(result.response.pairingCode, linked)
+                dataStore.applyServerRegistration(result.response.pairingCode, linked, result.response.deviceKey)
             }
             is RegisterResult.Failed -> {
                 // Logged inside PlaylistRepository already; nothing else to do here --
