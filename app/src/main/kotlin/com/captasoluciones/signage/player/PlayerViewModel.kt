@@ -192,6 +192,16 @@ class PlayerViewModel(
             is RegisterResult.Success -> {
                 val linked = result.response.estado == "activo"
                 dataStore.applyServerRegistration(result.response.pairingCode, linked, result.response.deviceKey)
+                // Aplicar de inmediato al snapshot local en vez de esperar a que
+                // dataStore.settingsFlow se propague de forma async: sin esto, el
+                // fetchPlaylist que sigue en este MISMO ciclo de sondeo (más abajo en
+                // startPollingLoop) todavía lee el deviceKey viejo/vacío y falla, y el
+                // dispositivo se ve "sin hacer nada" hasta el siguiente ciclo completo
+                // (pollMinutes, por defecto 5 min) -- o hasta que alguien lo tecleé a mano.
+                if (!result.response.deviceKey.isNullOrBlank()) {
+                    settings = settings.copy(deviceKey = result.response.deviceKey)
+                }
+                _uiState.update { it.copy(linked = linked) }
             }
             is RegisterResult.Failed -> {
                 // Logged inside PlaylistRepository already; nothing else to do here --
