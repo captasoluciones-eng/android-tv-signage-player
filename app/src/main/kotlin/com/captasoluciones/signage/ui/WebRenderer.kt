@@ -60,6 +60,12 @@ fun WebRenderer(
 
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // Android's WebView blocks ALL <video> autoplay (even muted) until a
+                // user gesture by default -- there is never one on a kiosk TV nobody
+                // touches, so the bot mascot video sat frozen on its first frame
+                // forever. This is the actual fix; nothing on the HTML/JS side can
+                // work around it.
+                settings.mediaPlaybackRequiresUserGesture = false
                 // Deliberately NOT setting loadWithOverviewMode/useWideViewPort.
                 // Those exist to make a page that has NO (or a non-responsive)
                 // viewport meta tag fit a small screen by zooming/scaling the
