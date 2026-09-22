@@ -77,7 +77,11 @@ class DeviceDataStore(private val context: Context) {
         )
     }
 
-    /** Generates and persists a UUID deviceId + a random 6-digit pairing code on first launch. */
+    /** Generates and persists a UUID deviceId + a random 8-digit pairing code on first launch.
+     * This is only a placeholder shown before the device's first successful /register (which
+     * returns the server's authoritative code, see applyServerRegistration) -- but it must still
+     * be 8 digits like the server's own generator, or the panel's pairing form rejects it
+     * (pattern="[0-9]{8}") whenever a device is stuck offline right after a fresh install. */
     suspend fun ensureDeviceIdentity(): Pair<String, String> {
         val prefs = context.dataStore.data.first()
         val existingId = prefs[Keys.DEVICE_ID]
@@ -88,7 +92,7 @@ class DeviceDataStore(private val context: Context) {
         }
 
         val id = existingId?.takeIf { it.isNotBlank() } ?: UUID.randomUUID().toString()
-        val code = existingCode?.takeIf { it.isNotBlank() } ?: (100000..999999).random().toString()
+        val code = existingCode?.takeIf { it.isNotBlank() } ?: (0..99999999).random().toString().padStart(8, '0')
 
         context.dataStore.edit {
             it[Keys.DEVICE_ID] = id
