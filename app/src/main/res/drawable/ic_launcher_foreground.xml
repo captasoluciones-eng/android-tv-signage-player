@@ -32,7 +32,7 @@
     <!-- Tree paths: authored at a MUCH larger native scale (part of the original
          full-size Capta Vale logo, real bbox ~262x94 units) than the bezel above
          (drawn directly at icon scale). Needs its own, much smaller, independently
-         computed transform -- reusing the bezel group's 0.825 scale left the tree
+         computed transform: reusing the bezel group's 0.825 scale left the tree
          about 3.5x too big for the screen it's supposed to sit inside (real bug,
          not a rounding thing: measured via getBBox() against the raw path data).
          pivot = the tree's own bbox center; scale/translate fit it inside the
