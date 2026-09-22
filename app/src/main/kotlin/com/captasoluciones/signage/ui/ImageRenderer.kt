@@ -14,7 +14,7 @@ import com.captasoluciones.signage.data.model.PlaylistItem
 /**
  * Renders an "imagen" item for `durationSec` seconds (the actual timing is driven by
  * PlayerViewModel's completion timer; this composable is purely visual). `scale`
- * maps "fill" -> Crop and anything else (default "fit") -> Fit.
+ * maps "fill"/"cover" -> Crop and anything else (default "fit") -> Fit.
  */
 @Composable
 fun ImageRenderer(
@@ -22,7 +22,8 @@ fun ImageRenderer(
     imageLoader: ImageLoader,
     onError: (String, String) -> Unit
 ) {
-    val contentScale = if (item.scale.trim().lowercase() == "fill") ContentScale.Crop else ContentScale.Fit
+    val scale = item.scale.trim().lowercase()
+    val contentScale = if (scale == "fill" || scale == "cover") ContentScale.Crop else ContentScale.Fit
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         AsyncImage(
